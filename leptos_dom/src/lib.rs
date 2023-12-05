@@ -1179,6 +1179,19 @@ where
     }
 }
 
+impl<V> IntoView for &Vec<V>
+where
+    for<'a> &'a V: IntoView,
+{
+    #[cfg_attr(
+        any(debug_assertions, feature = "ssr"),
+        instrument(level = "info", name = "#text", skip_all)
+    )]
+    fn into_view(self) -> View {
+        self.iter().map(IntoView::into_view).collect_view()
+    }
+}
+
 impl IntoView for core::fmt::Arguments<'_> {
     #[cfg_attr(
         any(debug_assertions, feature = "ssr"),
