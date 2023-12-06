@@ -560,6 +560,27 @@ impl<El: ElementDescriptor + 'static> HtmlElement<El> {
         self
     }
 
+    /// Checks to see if this element is currently focused.
+    ///
+    /// This method will always return `false` on non-wasm CSR targets.
+    #[inline(always)]
+    pub fn is_focused(&self) -> bool {
+        #[cfg(all(target_arch = "wasm32", feature = "web"))]
+        {
+            #[inline(never)]
+            fn is_focused_inner(element: &web_sys::Element) -> bool {
+                crate::document()
+                    .active_element()
+                    .is_some_and(|active_element| &active_element == element)
+            }
+
+            is_focused_inner(self.element.as_ref())
+        }
+
+        #[cfg(not(all(target_arch = "wasm32", feature = "web")))]
+        false
+    }
+
     /// Checks to see if this element is mounted to the DOM as a child
     /// of `body`.
     ///
